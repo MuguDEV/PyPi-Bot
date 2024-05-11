@@ -5,7 +5,8 @@ name = "pypi"
 
 [packages]
 python-telegram-bot="*"
-
+telethon ="*"
+httpx ="*"
 
 [requires]
 python_version = "3.9"
