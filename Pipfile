@@ -8,6 +8,7 @@ pyrogram="*"
 tgcrypto="*"
 httpx ="*"
 Telethon="*"
+python-telegram-bot="*"
 
 
 [requires]
