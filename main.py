@@ -1,18 +1,24 @@
-import random
+#PyPI API endpoint for package namesimport random
 import re
 import httpx
-from pyrogram import Client, filters
+from telethon import TelegramClient, events
+from telethon.tl.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-app = Client("bot",api_id=12590615,api_hash="048a88c8c193063ab850327dbbc25ca5",bot_token="6504739506:AAFNV-cdh4aVBRMCHbw1JgV5x7jwC4MCc1s")
+# Initialize the Telethon client
+api_id = 12590615
+api_hash = '048a88c8c193063ab850327dbbc25ca5'
+bot_token = '6504739506:AAFNV-cdh4aVBRMCHbw1JgV5x7jwC4MCc1s'
+client = TelegramClient('session_name', api_id, api_hash).start(bot_token=bot_token)
+
 # Define the PyPI API endpoint for package names
 PYPI_API_PACKAGES_URL = "https://pypi.org/simple/"
 
 # Define a command handler for getting information about a random package
-@app.on_message(filters.command("random_package", prefixes="/"))
-async def get_random_package_info(client, message):
-    async with httpx.AsyncClient() as client:
+@client.on(events.NewMessage(pattern='/random_package'))
+async def get_random_package_info(event):
+    async with httpx.AsyncClient() as client_httpx:
         # Make a request to the PyPI API to get a list of packages
-        response = await client.get(PYPI_API_PACKAGES_URL)
+        response = await client_httpx.get(PYPI_API_PACKAGES_URL)
         if response.status_code == 200:
             # Parse the response to extract package names
             package_names = re.findall(r'<a href="[^"]+">([^<]+)</a>', response.text)
@@ -21,7 +27,7 @@ async def get_random_package_info(client, message):
             package_name = random.choice(package_names)
 
             # Make a request to the PyPI API to get information about the package
-            response = await client.get(f"https://pypi.org/pypi/{package_name}/json")
+            response = await client_httpx.get(f"https://pypi.org/pypi/{package_name}/json")
             if response.status_code == 200:
                 # Parse the response to get package information
                 package_info = response.json()["info"]
@@ -57,34 +63,17 @@ async def get_random_package_info(client, message):
                         reply_message += f"🔗 **{key.capitalize()} URL:** {value}\n"
 
                 # Add a button to direct the user to the PyPI page for the package
-                await message.reply_text(
-                    text=reply_message,
+                await event.respond(
+                    reply_message,
                     parse_mode="markdown",
-                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("View on PyPI", url=pypi_url)]]),
+                    buttons=[[InlineKeyboardButton("View on PyPI", url=pypi_url)]],
                 )
             else:
                 # Inform the user that the package was not found
-                await message.reply_text("Package not found.")
+                await event.respond("Package not found.")
         else:
             # Inform the user that the list of packages could not be fetched
-            await message.reply_text("Failed to fetch the list of packages.")
-            
+            await event.respond("Failed to fetch the list of packages.")
 
-@app.on_message(filters.private & filters.command("feedback"))
-async def feedback_command(client: Client, message) -> None:
-    if len(message.text.split(" ")) == 1:
-        feedback_message: str = (
-        "📣 Feel free to provide your feedback or report any issues with the bot.\n\n"
-        "Simply type your feedback, and I'll forward it to the bot owner!\n\n" 
-        "Format `/feedback msg`"
-    )
-        await client.send_message(message.chat.id, feedback_message)
-    else:
-        feedback_message: str = (
-        f"📬 New Feedback from @{message.from_user.username}:\n\n"
-        f"{message.text.replace('/feedback','')}"
-    )
-    # Forward the feedback to the bot owner (you can replace 'owner_user_id' with your user ID)
-        await client.send_message(1271659696, feedback_message)
-        await client.send_message(message.chat.id, "Thank you for your feedback! 🙏")
-app.run()
+# Run the client
+client.run_until_disconnected()
