@@ -1,4 +1,4 @@
 telethon
 httpx
 python-telegram-bot
-sqlite3
+pyenve
