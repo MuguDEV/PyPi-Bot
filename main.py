@@ -3,7 +3,7 @@ import re
 import httpx
 from pyrogram import Client, filters
 
-app = Client(api_id=12590615,api_hash="048a88c8c193063ab850327dbbc25ca5",bot_token="6504739506:AAFNV-cdh4aVBRMCHbw1JgV5x7jwC4MCc1s")
+app = Client("bot",api_id=12590615,api_hash="048a88c8c193063ab850327dbbc25ca5",bot_token="6504739506:AAFNV-cdh4aVBRMCHbw1JgV5x7jwC4MCc1s")
 # Define the PyPI API endpoint for package names
 PYPI_API_PACKAGES_URL = "https://pypi.org/simple/"
 
